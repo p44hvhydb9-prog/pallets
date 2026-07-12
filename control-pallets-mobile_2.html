@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Pallet Tracker — Mobile</title>
+<style>
+  :root{
+    --charcoal:#1C1F22;
+    --charcoal-2:#26292D;
+    --surface:#F5F6F2;
+    --card:#FFFFFF;
+    --yellow:#F2B705;
+    --yellow-dark:#C99400;
+    --teal:#2E7D6B;
+    --steel:#8A9199;
+    --steel-light:#D8DCDD;
+    --text:#232526;
+    --danger:#C0392B;
+    --mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    --sans: "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--surface);
+    color:var(--text);
+    font-family:var(--sans);
+    min-height:100vh;
+  }
+
+  header{
+    background:var(--charcoal);
+    color:#fff;
+    padding:16px 16px 14px;
+    position:sticky;
+    top:0;
+    z-index:20;
+  }
+  .brand-eyebrow{
+    font-family:var(--mono);
+    font-size:10px;
+    letter-spacing:2.5px;
+    color:var(--yellow);
+    text-transform:uppercase;
+    margin:0 0 4px;
+  }
+  h1{
+    margin:0;
+    font-size:20px;
+    letter-spacing:0.5px;
+    text-transform:uppercase;
+    font-weight:800;
+  }
+  .hazard-stripe{
+    height:6px;
+    background:repeating-linear-gradient(135deg,var(--yellow) 0 12px, var(--charcoal-2) 12px 24px);
+  }
+
+  main{
+    padding:14px;
+    max-width:520px;
+    margin:0 auto;
+  }
+
+  /* DATE NAV */
+  .date-nav{
+    background:var(--card);
+    border-radius:10px;
+    border:1px solid var(--steel-light);
+    padding:10px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-bottom:12px;
+  }
+  .date-nav button{
+    background:var(--charcoal);
+    color:#fff;
+    border:none;
+    border-radius:8px;
+    width:42px;
+    height:42px;
+    font-size:18px;
+    cursor:pointer;
+    flex-shrink:0;
+  }
+  .date-nav input[type=date]{
+    flex:1;
+    min-width:0;
+    font-family:var(--mono);
+    font-size:14px;
+    padding:10px 6px;
+    border:1px solid var(--steel-light);
+    border-radius:8px;
+    color:var(--text);
+    height:42px;
+  }
+  .today-btn{
+    background:none !important;
+    color:var(--charcoal) !important;
+    border:1px solid var(--steel) !important;
+    width:auto !important;
+    padding:0 12px;
+    font-size:12px !important;
+    font-family:var(--sans);
+    flex-shrink:0;
+  }
+
+  /* READOUT */
+  .readout{
+    background:var(--charcoal);
+    border-radius:10px;
+    padding:14px;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px 10px;
+    margin-bottom:14px;
+  }
+  .readout-item{display:flex; flex-direction:column;}
+  .readout-item.full{grid-column:1 / -1; border-top:1px solid #33373B; padding-top:12px;}
+  .readout-label{
+    font-size:9.5px;
+    letter-spacing:1.5px;
+    text-transform:uppercase;
+    color:var(--steel);
+  }
+  .readout-value{
+    font-family:var(--mono);
+    font-size:20px;
+    font-weight:700;
+    color:var(--teal);
+  }
+  .readout-value.small{font-size:15px;color:var(--yellow);}
+  .readout-value.big{font-size:26px;}
+
+  /* CARD */
+  .card{
+    background:var(--card);
+    border-radius:10px;
+    border:1px solid var(--steel-light);
+    padding:14px;
+    margin-bottom:14px;
+  }
+  .card h2{
+    margin:0 0 12px;
+    font-size:12px;
+    letter-spacing:1.5px;
+    text-transform:uppercase;
+    color:var(--steel);
+  }
+
+  /* FORM (used inside modal sheet) */
+  .field{margin-bottom:12px;}
+  .field label{
+    display:block;
+    font-size:11px;
+    color:var(--steel);
+    margin-bottom:6px;
+    text-transform:uppercase;
+    letter-spacing:1px;
+  }
+  .field input, .field select{
+    width:100%;
+    padding:13px 12px;
+    border:1px solid var(--steel-light);
+    border-radius:8px;
+    font-size:16px; /* avoid iOS zoom */
+    font-family:var(--sans);
+    background:#fff;
+    color:var(--text);
+    height:48px;
+  }
+  .field-row{display:flex; gap:10px;}
+  .field-row .field{flex:1;}
+  .field input:focus, .field select:focus{
+    outline:2px solid var(--yellow);
+    outline-offset:1px;
+    border-color:var(--yellow-dark);
+  }
+  .error-msg{color:var(--danger); font-size:12px; margin-top:2px; display:none;}
+
+  /* ADD BUTTON */
+  .add-btn{
+    width:100%;
+    background:var(--yellow);
+    color:var(--charcoal);
+    border:none;
+    border-radius:10px;
+    padding:15px;
+    font-weight:800;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    font-size:15px;
+    cursor:pointer;
+    margin-bottom:14px;
+  }
+  .add-btn:active{background:var(--yellow-dark); color:#fff;}
+
+  /* MODAL SHEET */
+  .sheet-backdrop{
+    position:fixed; inset:0;
+    background:rgba(0,0,0,0.4);
+    z-index:40;
+    display:none;
+  }
+  .sheet-backdrop.open{display:block;}
+  .sheet{
+    position:fixed;
+    left:0; right:0; bottom:0;
+    background:var(--card);
+    border-radius:16px 16px 0 0;
+    padding:18px 16px calc(18px + env(safe-area-inset-bottom));
+    z-index:41;
+    max-height:88vh;
+    overflow-y:auto;
+    transform:translateY(100%);
+    transition:transform 0.22s ease;
+  }
+  .sheet-backdrop.open .sheet{transform:translateY(0);}
+  .sheet-drag-zone{
+    padding:10px 0 16px;
+    margin:-10px 0 0;
+    touch-action:none;
+    cursor:grab;
+  }
+  .sheet-handle{
+    width:40px; height:4px;
+    background:var(--steel-light);
+    border-radius:2px;
+    margin:0 auto;
+    transition:background 0.15s ease;
+  }
+  .sheet-drag-zone.dragging .sheet-handle{background:var(--steel);}
+  .sheet h2{
+    margin:0 0 14px;
+    font-size:15px;
+    letter-spacing:1px;
+    text-transform:uppercase;
+  }
+  .sheet-actions{display:flex; gap:10px; margin-top:6px;}
+  .sheet-actions button{
+    flex:1;
+    padding:13px;
+    border-radius:8px;
+    font-weight:700;
+    font-size:14px;
+    border:none;
+    cursor:pointer;
+  }
+  .sheet-save{background:var(--yellow); color:var(--charcoal);}
+  .sheet-cancel{background:var(--surface); color:var(--text); border:1px solid var(--steel-light) !important;}
+  .sheet-delete{background:none; color:var(--danger); border:1px solid #EFC9C4 !important; margin-top:10px; width:100%; padding:12px; border-radius:8px; font-weight:700; font-size:13px;}
+
+  /* ENTRY CARDS */
+  .entry-card{
+    border:1px solid var(--steel-light);
+    border-radius:10px;
+    padding:12px;
+    margin-bottom:10px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+  }
+  .entry-card:active{background:var(--surface);}
+  .entry-main{flex:1; min-width:0;}
+  .entry-top{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-size:13px;
+    color:var(--steel);
+    margin-bottom:4px;
+  }
+  .entry-seq{
+    font-family:var(--mono);
+    background:var(--charcoal);
+    color:#fff;
+    border-radius:5px;
+    padding:1px 6px;
+    font-size:11px;
+  }
+  .tag{
+    font-size:10px;
+    letter-spacing:0.5px;
+    text-transform:uppercase;
+    padding:2px 7px;
+    border-radius:20px;
+    font-weight:700;
+  }
+  .tag.Standard{background:#E6ECEB; color:var(--teal);}
+  .tag.Export{background:#FBEBC7; color:var(--yellow-dark);}
+  .entry-line{font-size:15px; font-weight:600;}
+  .entry-notes{font-size:12px; color:var(--steel); margin-top:2px;}
+  .entry-weight{
+    font-family:var(--mono);
+    font-size:18px;
+    font-weight:700;
+    text-align:right;
+    white-space:nowrap;
+  }
+  .empty-state{
+    text-align:center;
+    color:var(--steel);
+    padding:30px 10px;
+    font-size:14px;
+    font-style:italic;
+  }
+
+  .export-btn{
+    width:100%;
+    background:none;
+    border:1px solid var(--charcoal);
+    color:var(--charcoal);
+    padding:12px;
+    border-radius:8px;
+    font-size:13px;
+    letter-spacing:0.5px;
+    cursor:pointer;
+    margin-top:4px;
+  }
+  .export-btn:active{background:var(--charcoal); color:#fff;}
+  .status-msg{font-size:11.5px; color:var(--steel); display:block; text-align:center; margin-top:8px;}
+
+  .history-toggle{
+    background:none;
+    border:none;
+    color:var(--charcoal);
+    font-size:13px;
+    font-weight:700;
+    cursor:pointer;
+    padding:0;
+    text-decoration:underline;
+  }
+  #historyBody{display:none; margin-top:12px;}
+  .hist-row{
+    padding:10px 4px;
+    border-bottom:1px solid var(--steel-light);
+    font-size:13px;
+  }
+  .hist-row .d{font-family:var(--mono); font-weight:700; display:block; margin-bottom:3px;}
+  .hist-row .b{color:var(--steel); font-size:12px; display:block;}
+  .hist-row .w{font-family:var(--mono); font-weight:700; color:var(--teal); display:block; margin-top:2px;}
+</style>
+</head>
+<body>
+
+<header>
+  <p class="brand-eyebrow">Sorting Area</p>
+  <h1>Pallet Tracker</h1>
+</header>
+<div class="hazard-stripe"></div>
+
+<main>
+
+  <div class="date-nav">
+    <button id="prevDay">‹</button>
+    <input type="date" id="datePicker">
+    <button id="nextDay">›</button>
+    <button class="today-btn" id="todayBtn">TODAY</button>
+  </div>
+
+  <button class="add-btn" id="openAddBtn">+ Log pallet</button>
+
+  <div class="readout">
+    <div class="readout-item">
+      <span class="readout-label">Pallets today</span>
+      <span class="readout-value big" id="totalPallets">0</span>
+    </div>
+    <div class="readout-item">
+      <span class="readout-label">Total weight</span>
+      <span class="readout-value small" id="totalWeight">0 kg</span>
+    </div>
+    <div class="readout-item">
+      <span class="readout-label">Standard weight</span>
+      <span class="readout-value small" id="stdWeight">0 kg</span>
+    </div>
+    <div class="readout-item">
+      <span class="readout-label">Export weight</span>
+      <span class="readout-value small" id="expWeight">0 kg</span>
+    </div>
+    <div class="readout-item full" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+      <div class="readout-item">
+        <span class="readout-label">Standard pallets</span>
+        <span class="readout-value small" id="stdCount">0</span>
+      </div>
+      <div class="readout-item">
+        <span class="readout-label">Export pallets</span>
+        <span class="readout-value small" id="expCount">0</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Today's pallets</h2>
+    <div id="entryList">
+      <div class="empty-state">No pallets logged for this day.</div>
+    </div>
+    <button class="export-btn" id="exportBtn">Export day as CSV</button>
+    <span class="status-msg" id="statusMsg">Saves automatically to this device.</span>
+  </div>
+
+  <div class="card">
+    <button class="history-toggle" id="historyToggle">View history ▸</button>
+    <div id="historyBody"></div>
+  </div>
+
+</main>
+
+<!-- ADD / EDIT SHEET -->
+<div class="sheet-backdrop" id="sheetBackdrop">
+  <div class="sheet">
+    <div class="sheet-drag-zone" id="sheetDragZone">
+      <div class="sheet-handle"></div>
+    </div>
+    <h2 id="sheetTitle">Log pallet</h2>
+
+    <div class="field">
+      <label for="lineInput">Line</label>
+      <input type="text" id="lineInput" placeholder="e.g. Line 3">
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label for="weightInput">Weight (kg)</label>
+        <input type="number" id="weightInput" min="0" step="0.1" inputmode="decimal" placeholder="0.0">
+      </div>
+      <div class="field">
+        <label for="typeInput">Type</label>
+        <select id="typeInput">
+          <option value="Standard">Standard</option>
+          <option value="Export">Export</option>
+        </select>
+      </div>
+    </div>
+    <div class="field">
+      <label for="notesInput">Notes</label>
+      <input type="text" id="notesInput" placeholder="Optional">
+    </div>
+    <p class="error-msg" id="errorMsg">Enter the line and a valid weight before saving.</p>
+
+    <div class="sheet-actions">
+      <button class="sheet-cancel" id="sheetCancelBtn">Cancel</button>
+      <button class="sheet-save" id="sheetSaveBtn">Save</button>
+    </div>
+    <button class="sheet-delete" id="sheetDeleteBtn" style="display:none;">Delete this pallet</button>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY = 'pallet-log-v1';
+let data = {};
+let currentDate = todayStr();
+let editingId = null;
+
+function todayStr(){
+  return new Date().toISOString().slice(0,10);
+}
+function fmtWeight(w){
+  return w.toLocaleString('en-US', {minimumFractionDigits:1, maximumFractionDigits:1});
+}
+
+function loadData(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    data = raw ? JSON.parse(raw) : {};
+  }catch(e){
+    data = {};
+  }
+}
+function saveData(){
+  const statusEl = document.getElementById('statusMsg');
+  try{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    statusEl.textContent = 'Saves automatically to this device.';
+  }catch(e){
+    statusEl.textContent = 'Could not save locally — export a CSV backup to be safe.';
+  }
+}
+
+function getDayEntries(date){
+  return data[date] || [];
+}
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function render(){
+  document.getElementById('datePicker').value = currentDate;
+  const entries = getDayEntries(currentDate).slice().sort((a,b)=>a.seq-b.seq);
+  const list = document.getElementById('entryList');
+
+  if(entries.length === 0){
+    list.innerHTML = '<div class="empty-state">No pallets logged for this day.</div>';
+  } else {
+    list.innerHTML = entries.map(e => `
+      <div class="entry-card" onclick="openEdit('${e.id}')">
+        <div class="entry-main">
+          <div class="entry-top">
+            <span class="entry-seq">#${e.seq}</span>
+            <span>${e.time}</span>
+            <span class="tag ${e.type}">${e.type}</span>
+          </div>
+          <div class="entry-line">${escapeHtml(e.line)}</div>
+          ${e.notes ? `<div class="entry-notes">${escapeHtml(e.notes)}</div>` : ''}
+        </div>
+        <div class="entry-weight">${fmtWeight(e.weight)}<br><span style="font-size:11px;color:var(--steel);font-weight:400;">kg</span></div>
+      </div>
+    `).join('');
+  }
+
+  const totalW = entries.reduce((s,e)=>s+e.weight,0);
+  const count = entries.length;
+  const avg = count ? totalW/count : 0;
+  const stdEntries = entries.filter(e=>e.type==='Standard');
+  const expEntries = entries.filter(e=>e.type==='Export');
+  const stdWeight = stdEntries.reduce((s,e)=>s+e.weight,0);
+  const expWeight = expEntries.reduce((s,e)=>s+e.weight,0);
+
+  document.getElementById('totalPallets').textContent = count;
+  document.getElementById('stdWeight').textContent = fmtWeight(stdWeight) + ' kg';
+  document.getElementById('expWeight').textContent = fmtWeight(expWeight) + ' kg';
+  document.getElementById('stdCount').textContent = stdEntries.length;
+  document.getElementById('expCount').textContent = expEntries.length;
+  document.getElementById('totalWeight').textContent = fmtWeight(totalW) + ' kg';
+
+  renderHistory();
+}
+
+function renderHistory(){
+  const box = document.getElementById('historyBody');
+  const dates = Object.keys(data).filter(d => (data[d]||[]).length > 0).sort().reverse();
+  if(dates.length === 0){
+    box.innerHTML = '<p style="color:var(--steel); font-size:13px;">No days with saved data yet.</p>';
+    return;
+  }
+  box.innerHTML = dates.map(d=>{
+    const entries = data[d];
+    const total = entries.reduce((s,e)=>s+e.weight,0);
+    const stdE = entries.filter(e=>e.type==='Standard');
+    const expE = entries.filter(e=>e.type==='Export');
+    const stdW = stdE.reduce((s,e)=>s+e.weight,0);
+    const expW = expE.reduce((s,e)=>s+e.weight,0);
+    return `<div class="hist-row" onclick="changeDate('${d}')">
+      <span class="d">${d}</span>
+      <span class="b">Standard: ${stdE.length} (${fmtWeight(stdW)} kg) · Export: ${expE.length} (${fmtWeight(expW)} kg)</span>
+      <span class="w">${fmtWeight(total)} kg total</span>
+    </div>`;
+  }).join('');
+}
+
+function changeDate(newDate){
+  currentDate = newDate;
+  render();
+}
+function shiftDate(deltaDays){
+  const d = new Date(currentDate + 'T00:00:00');
+  d.setDate(d.getDate() + deltaDays);
+  changeDate(d.toISOString().slice(0,10));
+}
+
+/* SHEET (add/edit) */
+function openAddSheet(){
+  editingId = null;
+  document.getElementById('sheetTitle').textContent = 'Log pallet';
+  document.getElementById('lineInput').value = '';
+  document.getElementById('weightInput').value = '';
+  document.getElementById('typeInput').value = 'Standard';
+  document.getElementById('notesInput').value = '';
+  document.getElementById('errorMsg').style.display = 'none';
+  document.getElementById('sheetDeleteBtn').style.display = 'none';
+  document.getElementById('sheetBackdrop').classList.add('open');
+}
+
+function openEdit(id){
+  const entry = getDayEntries(currentDate).find(e=>e.id===id);
+  if(!entry) return;
+  editingId = id;
+  document.getElementById('sheetTitle').textContent = `Edit pallet #${entry.seq}`;
+  document.getElementById('lineInput').value = entry.line;
+  document.getElementById('weightInput').value = entry.weight;
+  document.getElementById('typeInput').value = entry.type;
+  document.getElementById('notesInput').value = entry.notes || '';
+  document.getElementById('errorMsg').style.display = 'none';
+  document.getElementById('sheetDeleteBtn').style.display = 'block';
+  document.getElementById('sheetBackdrop').classList.add('open');
+}
+
+function closeSheet(){
+  document.getElementById('sheetBackdrop').classList.remove('open');
+  editingId = null;
+}
+
+function saveSheet(){
+  const line = document.getElementById('lineInput').value.trim();
+  const weight = parseFloat(document.getElementById('weightInput').value);
+  const type = document.getElementById('typeInput').value;
+  const notes = document.getElementById('notesInput').value.trim();
+
+  if(!line || isNaN(weight) || weight <= 0){
+    document.getElementById('errorMsg').style.display = 'block';
+    return;
+  }
+
+  if(editingId){
+    const entry = getDayEntries(currentDate).find(e=>e.id===editingId);
+    entry.line = line; entry.weight = weight; entry.type = type; entry.notes = notes;
+  } else {
+    if(!data[currentDate]) data[currentDate] = [];
+    const seq = data[currentDate].length + 1;
+    const time = new Date().toTimeString().slice(0,5);
+    data[currentDate].push({
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2,6),
+      seq, time, line, weight, type, notes
+    });
+  }
+
+  saveData();
+  closeSheet();
+  render();
+}
+
+function deleteFromSheet(){
+  if(!editingId) return;
+  if(!confirm('Delete this pallet from the log?')) return;
+  data[currentDate] = getDayEntries(currentDate).filter(e=>e.id!==editingId);
+  saveData();
+  closeSheet();
+  render();
+}
+
+function exportCSV(){
+  const entries = getDayEntries(currentDate).slice().sort((a,b)=>a.seq-b.seq);
+  let csv = 'No;Time;Line;Type;Weight_kg;Notes\n';
+  entries.forEach(e=>{
+    csv += `${e.seq};${e.time};${e.line};${e.type};${e.weight.toFixed(1)};${(e.notes||'').replace(/;/g,',')}\n`;
+  });
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `pallets_${currentDate}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+document.getElementById('openAddBtn').addEventListener('click', openAddSheet);
+document.getElementById('sheetCancelBtn').addEventListener('click', closeSheet);
+document.getElementById('sheetSaveBtn').addEventListener('click', saveSheet);
+document.getElementById('sheetDeleteBtn').addEventListener('click', deleteFromSheet);
+document.getElementById('sheetBackdrop').addEventListener('click', (e)=>{ if(e.target.id==='sheetBackdrop') closeSheet(); });
+
+/* Swipe-down-to-close on the handle */
+(function(){
+  const zone = document.getElementById('sheetDragZone');
+  const sheetEl = document.querySelector('.sheet');
+  let startY = 0, currentY = 0, dragging = false;
+
+  function start(y){
+    dragging = true;
+    startY = y;
+    currentY = y;
+    sheetEl.style.transition = 'none';
+    zone.classList.add('dragging');
+  }
+  function move(y){
+    if(!dragging) return;
+    currentY = y;
+    const delta = Math.max(0, currentY - startY);
+    sheetEl.style.transform = `translateY(${delta}px)`;
+  }
+  function end(){
+    if(!dragging) return;
+    dragging = false;
+    zone.classList.remove('dragging');
+    const delta = Math.max(0, currentY - startY);
+    sheetEl.style.transition = '';
+    sheetEl.style.transform = '';
+    if(delta > 80){
+      closeSheet();
+    }
+  }
+
+  zone.addEventListener('touchstart', e => start(e.touches[0].clientY), {passive:true});
+  zone.addEventListener('touchmove', e => { move(e.touches[0].clientY); e.preventDefault(); }, {passive:false});
+  zone.addEventListener('touchend', end);
+  zone.addEventListener('touchcancel', end);
+
+  zone.addEventListener('mousedown', e => start(e.clientY));
+  document.addEventListener('mousemove', e => move(e.clientY));
+  document.addEventListener('mouseup', end);
+})();
+
+document.getElementById('prevDay').addEventListener('click', ()=>shiftDate(-1));
+document.getElementById('nextDay').addEventListener('click', ()=>shiftDate(1));
+document.getElementById('todayBtn').addEventListener('click', ()=>changeDate(todayStr()));
+document.getElementById('datePicker').addEventListener('change', e=>changeDate(e.target.value));
+document.getElementById('exportBtn').addEventListener('click', exportCSV);
+document.getElementById('historyToggle').addEventListener('click', ()=>{
+  const box = document.getElementById('historyBody');
+  const open = box.style.display === 'block';
+  box.style.display = open ? 'none' : 'block';
+  document.getElementById('historyToggle').textContent = open ? 'View history ▸' : 'Hide history ▾';
+});
+
+loadData();
+render();
+</script>
+</body>
+</html>
